@@ -2,19 +2,27 @@
 
 require_once("vendor/autoload.php");
 
-$app = new \Slim\Slim();
+use \Slim\App;
+use \Tila\Page;
 
-$app->config('debug', true);
+//$app = new \Slim\App;
+//$app->config('debug', true);
+$app = new App([
+    'settings' => [
+        'displayErrorDetails' => true
+    ]
+]);
 
 //use \Tila\DB\Sql;
 
+// rota
 $app->get('/', function() {
 
-    $sql = new Tila\DB\Sql();
+	// __construct (header)
+	$page = new Page();
 
-	$results = $sql->select("SELECT * FROM tb_users");
-
-	echo json_encode($results);
+	// body
+	$page->setTpl("index");
 
 });
 
