@@ -6,9 +6,15 @@ $app = new \Slim\Slim();
 
 $app->config('debug', true);
 
+//use \Tila\DB\Sql;
+
 $app->get('/', function() {
-    
-	echo "OK";
+
+    $sql = new Tila\DB\Sql();
+
+	$results = $sql->select("SELECT * FROM tb_users");
+
+	echo json_encode($results);
 
 });
 

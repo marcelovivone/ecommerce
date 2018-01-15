@@ -1,0 +1,37 @@
+Virtual Host
+1) C:\xampp\apache\conf\extra\httpd-vhosts.conf
+
+<VirtualHost *:80>
+    ServerAdmin webmaster@dummy-host2.example.com
+    DocumentRoot "C:/Marcelo/Estudo/Web/treinamento-PHP/ecommerce"
+    ServerName www.tilaecommerce.com.br
+    ErrorLog "logs/dummy-host2.example.com-error.log"
+    CustomLog "logs/dummy-host2.example.com-access.log" common
+
+    <Directory "C:/Marcelo/Estudo/Web/treinamento-PHP/ecommerce">
+        Order allow,deny
+        Allow from all
+        Require all granted
+    </Directory>
+</VirtualHost>
+
+2) C:\Windows\System32\drivers\etc\hosts
+127.0.0.1		www.tilaecommerce.com.br
+
+Composer
+1) Criar composer.json no diretório raiz
+
+GITHUB
+Em github.com:
+1) Criar novo repositório
+
+No Git Bash:
+1) git init
+2) git remote add origin https://github.com/marcelovivone/ecommerce.git (esse é o repositório criado)
+3) git add --all
+4) git commit -m "comentário para documentação"
+5) git push -u origin master
+
+Autoload - para o caso de classes incluídas pelo desenvolvedor que não fazem parte do composer
+No Git Bash:
+1) composer dump-autoload
