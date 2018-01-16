@@ -1,10 +1,13 @@
 <?php 
 
+session_start();
+
 require_once("vendor/autoload.php");
 
 use \Slim\App;
 use \Tila\Page;
 use \Tila\PageAdmin;
+use \Tila\Model\User;
 
 //$app = new \Slim\App;
 //$app->config('debug', true);
@@ -30,6 +33,9 @@ $app->get('/', function() {
 // rota de PageAdmin
 $app->get('/admin', function() {
 
+	// quando for acessar a página de admin, verificar se o usuário está logado
+	User::verifyLogin();
+
 	// __construct (header)
 	$page = new PageAdmin();
 
@@ -37,6 +43,41 @@ $app->get('/admin', function() {
 	$page->setTpl("index");
 
 });
+
+// rota de Login
+$app->get('/admin/login', function() {
+
+	// __construct (header)
+	$page = new PageAdmin([
+		"header"=>false,
+		"footer"=>false
+	]);
+
+	// body
+	$page->setTpl("login");
+
+});
+
+// rota de formulário
+$app->post('/admin/login', function() {
+
+	User::login($_POST["login"], $_POST["password"]);
+
+	header("Location: /admin");
+	exit;
+
+});
+
+// rota de Logout
+$app->get('/admin/logout', function() {
+
+	User::Logout();
+
+	header("Location: /admin/login");
+	exit;
+
+});
+
 
 $app->run();
 

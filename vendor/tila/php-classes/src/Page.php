@@ -10,6 +10,8 @@ class Page
 	private $tpl;
 	private $options = [];
 	private $defaults = [
+			"header"=>true,
+			"footer"=>true,
 			"data"=>[]
 	];
 
@@ -37,8 +39,8 @@ class Page
 
 		$this->setData($this->options["data"]);
 
-		// em todas as páginas HTML vai existir o header
-		$this->tpl->draw("header");
+		// em todas as páginas HTML vai existir o header (exceto login)
+		if ($this->options["header"] === true) $this->tpl->draw("header");
 
 	}
 
@@ -69,8 +71,8 @@ class Page
 	{
 
 		// quando a classe for finalizada, deve-se incluir o footer, que vai existir
-		// em todas as páginas HTML
-		$this->tpl->draw("footer");
+		// em todas as páginas HTML (exceto login)
+		if ($this->options["footer"] === true) $this->tpl->draw("footer");
 
 	}
 }
