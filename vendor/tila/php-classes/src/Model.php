@@ -20,6 +20,7 @@ class Model {
 		$fieldName = substr($name, 3, strlen($name));
 
 		switch ($method) {
+
 			case 'get':
 				return $this->values[$fieldName];
 				break;
@@ -36,7 +37,7 @@ class Model {
 	{
 
 		foreach ($data as $key => $value) {
-			
+
 			// cada nome de método é criado dinamicamente
 			// chaves {} e como string é o formato para criação dinâmica
 			$this->{"set".$key}($value);

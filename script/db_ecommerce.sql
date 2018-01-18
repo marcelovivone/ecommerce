@@ -215,7 +215,7 @@ CREATE TABLE `tb_persons` (
 
 LOCK TABLES `tb_persons` WRITE;
 /*!40000 ALTER TABLE `tb_persons` DISABLE KEYS */;
-INSERT INTO `tb_persons` VALUES (1,'JoÃ£o Rangel','admin@hcode.com.br',2147483647,'2017-03-01 03:00:00'),(7,'Suporte','suporte@hcode.com.br',1112345678,'2017-03-15 16:10:27');
+INSERT INTO `tb_persons` VALUES (1,'Paco Vivone','paco@gmail.com',2147483647,'2018-01-14 10:54:00'),(2,'Tila Vivone','tilavivone@gmail.com',1112345678,'2018-01-17 15:30:27');
 /*!40000 ALTER TABLE `tb_persons` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -227,7 +227,7 @@ DROP TABLE IF EXISTS `tb_products`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `tb_products` (
-  `idproduct` int(11) NOT NULL AUTO_INCREMENT,
+  `idproduct` int(11) NOT NULL,
   `desproduct` varchar(64) NOT NULL,
   `vlprice` decimal(10,2) NOT NULL,
   `vlwidth` decimal(10,2) NOT NULL,

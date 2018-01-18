@@ -11,10 +11,6 @@ class PageAdmin extends Page
 		parent::__construct($opts, $tpl_dir);
 
 	}
-	public function __destruct() 
-	{
-		
-	}
 
 }
 

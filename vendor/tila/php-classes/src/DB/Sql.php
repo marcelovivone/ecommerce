@@ -15,7 +15,8 @@ class Sql {
 	{
 
 		$this->conn = new \PDO(
-			"mysql:dbname=".Sql::DBNAME.";host=".Sql::HOSTNAME, 
+			"mysql:dbname=".Sql::DBNAME.";
+			host=".Sql::HOSTNAME, 
 			Sql::USERNAME,
 			Sql::PASSWORD
 		);
@@ -51,9 +52,9 @@ class Sql {
 
 	}
 
-	public function select($rawQuery, $params = array()):array
+	public function select($rawQuery, $params = array()): array
 	{
-
+		
 		$stmt = $this->conn->prepare($rawQuery);
 
 		$this->setParams($stmt, $params);
@@ -66,4 +67,4 @@ class Sql {
 
 }
 
- ?>
+?>
