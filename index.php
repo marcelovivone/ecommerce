@@ -9,15 +9,11 @@ use \Tila\Page;
 use \Tila\PageAdmin;
 use \Tila\Model\User;
 
-//$app = new \Slim\App;
-//$app->config('debug', true);
 $app = new App([
     'settings' => [
         'displayErrorDetails' => true
     ]
 ]);
-
-//use \Tila\DB\Sql;
 
 // rota de Page
 $app->get("/", function() {
@@ -189,6 +185,92 @@ $app->post("/admin/users/{iduser}", function($request, $response, $args) {
 
 	header("Location: /admin/users");
 	exit;
+
+});
+
+// rota de recuperação de senha (forgot)
+$app->get("/admin/forgot", function() {
+
+	// __construct (header)
+	$page = new PageAdmin([
+		"header"=>false,
+		"footer"=>false
+	]);
+
+	// body
+	$page->setTpl("forgot");
+
+});
+
+// rota de salvar senha de recuperação no banco (forgot)
+$app->post("/admin/forgot", function() {
+	
+	$user = User::getForgot($_POST["email"]);
+
+	header("location: /admin/forgot/sent");
+	exit;
+
+});
+
+// rota de janela de senha enviada (forgot)
+$app->get("/admin/forgot/sent", function() {
+
+	// __construct (header)
+	$page = new PageAdmin([
+		"header"=>false,
+		"footer"=>false
+	]);
+
+	// body
+	$page->setTpl("forgot-sent");
+
+});
+
+// rota de janela de reset de senha
+$app->get("/admin/forgot/reset", function() {
+
+	$user = User::validForgotDecrypt($_GET["code"], $_GET["iv"]);
+
+	// __construct (header)
+	$page = new PageAdmin([
+		"header"=>false,
+		"footer"=>false
+	]);
+
+	// body
+	$page->setTpl("forgot-reset", array(
+		"name"=>$user["desperson"],
+		"code"=>$_GET["code"],
+		"iv"=>$_GET["iv"]
+	));
+
+});
+
+// rota de salvar a senha de reset no banco
+$app->post("/admin/forgot/reset", function() {
+
+	$forgot = User::validForgotDecrypt($_POST["code"], $_POST["iv"]);
+
+	User::setForgotUsed($forgot["idrecovery"]);
+
+	$user = new User();
+
+	$user->get((int)$forgot["iduser"]);
+
+	$password = password_hash($_POST["password"], PASSWORD_DEFAULT, [
+		"cost"=>12
+	]);
+
+	$user->setPassword($password);
+
+	// __construct (header)
+	$page = new PageAdmin([
+		"header"=>false,
+		"footer"=>false
+	]);
+
+	// body
+	$page->setTpl("forgot-reset-success");
 
 });
 

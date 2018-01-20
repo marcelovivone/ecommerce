@@ -4,6 +4,7 @@ namespace Tila\Model;
 
 use \Tila\DB\Sql;
 use \Tila\Model;
+use \Tila\Mailer;
 
 // essa classe User é um model. Todo classe model tem getters e setters
 // Classe Model contém os getters e setters, para serem utilizados em todas as classes model
@@ -11,6 +12,8 @@ class User extends Model
 {
 	
 	const SESSION = "User";
+	const SECRET = "1019019018452124";
+	const CIPHER = "aes-128-cbc";
 
 	public static function login($login, $password)
 	{
@@ -157,6 +160,160 @@ class User extends Model
 
 	}
 
+	public static function getForgot($email)
+	{
+
+		$sql = new Sql();
+
+		$results1 = $sql->select("
+			SELECT * 
+			  FROM tb_persons a
+			 INNER JOIN tb_users b USING(idperson)
+			 WHERE a.desemail = :email;",
+			 array(
+			 	":email"=>$email
+			 ));
+
+		if (count($results1) === 0)
+		{
+
+			throw new \Exception("Não foi possível recuperar a senha.", 1);
+			
+		} else {
+
+			$data = $results1[0];
+
+			$results2 = $sql->select("CALL sp_userspasswordsrecoveries_create (:iduser, :desip)", 
+				array(
+					":iduser"=>$data["iduser"],
+					":desip"=>$_SERVER["REMOTE_ADDR"]
+			));			
+
+		}
+
+		if (count($results2) === 0)
+		{
+
+			throw new \Exception("Não foi possível recuperar a senha.", 1);
+			
+		} else {
+
+			$dataRecovery = $results2[0];
+
+			// chave ou fixa ou passando randomizada e na base 64 pelo get (= ao IV)
+			// pesquisar qual maneira é a mais segura
+//			$key = openssl_random_pseudo_bytes(USER::SECRET);
+			$key = USER::SECRET;
+
+			$iv = openssl_random_pseudo_bytes(openssl_cipher_iv_length(USER::CIPHER));
+
+			$code = base64_encode(openssl_encrypt($dataRecovery["idrecovery"], USER::CIPHER, $key, 0, $iv));
+/*
+echo 'Code: '.$code;
+//echo ' --- ';
+//echo base64_encode($code);
+echo ' --- ';
+echo 'IV: '.$iv;
+*/
+			$iv = base64_encode($iv);
+/*
+echo ' --- ';
+echo 'IV64: '.$iv;
+//exit;
+*/
+
+			$link = "http://www.tilacommerce.com.br/admin/forgot/reset?code=$code&iv=$iv";
+
+			$mailer = new Mailer($data["desemail"], $data["desperson"], "Redefinir Senha da Tila Store", "forgot", 
+				array(
+					"name"=>$data["desperson"],
+					"link"=>$link
+			));
+
+			$mailer->send();
+
+			return $data;
+
+		}
+
+	}
+
+	public static function validForgotDecrypt($code,$iv) {
+
+		// chave fixa ou recebendo randomizada e na base 64 pelo get (= ao IV)
+		// pesquisar qual maneira é a mais segura
+		$key = USER::SECRET;
+
+/*
+echo 'Code: '.$code;
+//echo ' --- ';
+//echo base64_encode($code);
+echo ' --- ';
+echo 'IV: '.$iv;
+*/
+
+		$iv = base64_decode($iv);
+
+/*
+echo ' --- ';
+echo 'IV64: '.$iv;
+echo ' --- ';
+*/
+
+		$idrecovery = openssl_decrypt(base64_decode($code), USER::CIPHER, $key, 0, $iv);
+
+/*
+echo $idrecovery;
+*/
+
+		$sql = new Sql();
+
+		$results = $sql->select("
+			SELECT *
+			  FROM tb_userspasswordsrecoveries r
+			  INNER JOIN tb_users u USING(iduser)
+			  INNER JOIN tb_persons p USING(idperson)
+			 WHERE r.idrecovery = :idrecovery AND
+			 	   r.dtrecovery IS NULL AND
+			 	   DATE_ADD(r.dtregister, INTERVAL 1 HOUR) >= NOW();
+			", array(
+				":idrecovery"=>$idrecovery
+			));
+
+		if (count($results) === 0) {
+
+			throw new \Exception("Não foi possível recuperar a senha.", 1);
+
+		} else {
+
+			return $results[0];
+
+		}
+
+	}
+
+	public static function setForgotUsed($idrecovery)
+	{
+
+		$sql = new Sql();
+
+		$sql->query("UPDATE tb_userspasswordsrecoveries SET dtrecovery = NOW() WHERE idrecovery = :idrecovery", array(
+			":idrecovery"=>$idrecovery
+		));
+
+	}
+
+	public function setPassword($password)
+	{
+		
+		$sql = new Sql();
+
+		$sql->query("UPDATE tb_users SET despassword = :password WHERE iduser = :iduser", array(
+			":password"=>$password,
+			":iduser"=>$this->getiduser()
+		));
+
+	}
 
 }
 

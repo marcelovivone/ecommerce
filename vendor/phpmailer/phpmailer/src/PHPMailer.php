@@ -17,7 +17,6 @@
  * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
  * FITNESS FOR A PARTICULAR PURPOSE.
  */
-
 namespace PHPMailer\PHPMailer;
 
 /**
@@ -723,6 +722,7 @@ class PHPMailer
      */
     public function __construct($exceptions = null)
     {
+        
         if (null !== $exceptions) {
             $this->exceptions = (bool) $exceptions;
         }
