@@ -33,6 +33,9 @@ class Category extends Model
 		// atribui o resultado no próprio objeto, para o caso de quem chamou necessite do resultado
 		$this->setData($results[0]);
 
+		// refaz o menu de categoria para contemplar a inclusão
+		Category::updateFile();
+
 	}
 
 	public function get($idcategory)
@@ -62,6 +65,9 @@ class Category extends Model
 		// atribui o resultado no próprio objeto, para o caso de quem chamou necessite do resultado
 		$this->setData($results[0]);
 
+		// refaz o menu de categoria para contemplar a atualização
+		Category::updateFile();
+
 	}
 
 	public function delete()
@@ -76,6 +82,25 @@ class Category extends Model
 
 		// atribui o resultado no próprio objeto, para o caso de quem chamou necessite do resultado
 		$this->setData($results[0]);
+
+		// refaz o menu de categoria para contemplar a exclusão
+		Category::updateFile();
+
+	}
+
+	public static function updateFile() {
+
+		$categories = Category::listAll();
+
+		$html = [];
+
+		foreach ($categories as $row) {
+			array_push($html, '<li><a href="/categories/'.$row['idcategory'].'">'.$row['descategory'].'</a></li>');
+		}
+
+var_dump($html);
+//exit;
+		file_put_contents($_SERVER['DOCUMENT_ROOT'] . DIRECTORY_SEPARATOR . "views" . DIRECTORY_SEPARATOR . "categories-menu.html", implode("", $html));
 
 	}
 

@@ -372,6 +372,26 @@ $app->get("/admin/categories/delete/{idcategory}", function($request, $response,
 
 });
 
+// rota para alterar os dados no banco de dados
+$app->get("/categories/{idcategory}", function($request, $response, $args) {
+
+	User::verifyLogin();
+
+	$category = new Category();
+
+	$category->get((int)$args["idcategory"]);
+
+	$page = new Page();
+
+	$page->setTpl("category", [
+		'category'=>$category->getValues(),
+		'products'=>[]
+	]);
+
+});
+
+
+
 $app->run();
 
 ?>
