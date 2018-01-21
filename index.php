@@ -8,6 +8,7 @@ use \Slim\App;
 use \Tila\Page;
 use \Tila\PageAdmin;
 use \Tila\Model\User;
+use \Tila\Model\Category;
 
 $app = new App([
     'settings' => [
@@ -106,7 +107,7 @@ $app->get("/admin/users/create", function() {
 // além disso, na maioria dos servidores WEB, o método delete é desabilitado por padrão
 //$app->delete('/admin/users/:iduser', function($iduser) {
 
-// rota para excluir os dados no banco de dados
+// rota para excluir o usuário no banco de dados
 // tem que estar acima do método de alteração (método abaixo) porque a rota é a mesma,
 // somente acrescentando o delete no fim. Caso esse método estivesse abaixo do método
 // de alteração, o slim pararia no :iduser também para o delete
@@ -127,7 +128,7 @@ $app->get("/admin/users/delete/{iduser}", function($request, $response, $args) {
 
 });
 
-// rota para tela de alteração
+// rota para tela de alteração de usuário
 // por boa prática, já deve passar o id do usuário na rota
 $app->get("/admin/users/{iduser}", function($request, $response, $args) {
 
@@ -146,8 +147,7 @@ $app->get("/admin/users/{iduser}", function($request, $response, $args) {
 
 });
 
-
-// rota para criar os dados no banco de dados
+// rota para criar usuário no banco de dados
 $app->post("/admin/users/create", function() {
 
 	User::verifyLogin();
@@ -271,6 +271,104 @@ $app->post("/admin/forgot/reset", function() {
 
 	// body
 	$page->setTpl("forgot-reset-success");
+
+});
+
+// rota para tela de lista de categorias
+$app->get("/admin/categories", function() {
+
+	User::verifyLogin();
+
+	$categories = Category::listAll();
+
+	// __construct (header)
+	$page = new PageAdmin();
+
+	// body
+	$page->setTpl("categories", array(
+		"categories"=>$categories
+	));
+
+});
+
+// rota para tela de cadastro de categorias
+$app->get("/admin/categories/create", function() {
+
+	User::verifyLogin();
+
+	// __construct (header)
+	$page = new PageAdmin();
+
+	// body
+	$page->setTpl("categories-create");
+
+});
+
+// rota para criar usuário no banco de dados
+$app->post("/admin/categories/create", function() {
+
+	User::verifyLogin();
+
+	$category = new Category();
+
+	$category->setData($_POST);
+
+	$category->insert();
+
+	header("Location: /admin/categories");
+	exit;
+
+});
+
+// rota para tela de alteração de categoria
+$app->get("/admin/categories/{idcategory}", function($request, $response, $args) {
+
+	User::verifyLogin();
+
+	$category = new Category();
+
+	$category->get((int)$args["idcategory"]);
+
+	// __construct (header)
+	$page = new PageAdmin();
+
+	$page->setTpl("categories-update", array(
+		"category"=>$category->getValues()
+	));
+
+});
+
+// rota para alterar os dados no banco de dados
+$app->post("/admin/categories/{idcategory}", function($request, $response, $args) {
+
+	User::verifyLogin();
+
+	$category = new Category();
+
+	$category->get((int)$args["idcategory"]);
+
+	$category->setData($_POST);
+
+	$category->update();
+
+	header("Location: /admin/categories");
+	exit;
+
+});
+
+// rota para excluir a categoria do banco de dados
+$app->get("/admin/categories/delete/{idcategory}", function($request, $response, $args) {
+
+	User::verifyLogin();
+
+	$category = new Category();
+
+	$category->get((int)$args["idcategory"]);
+
+	$category->delete();
+
+	header("Location: /admin/categories");
+	exit;
 
 });
 
