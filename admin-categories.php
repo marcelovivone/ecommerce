@@ -1,9 +1,9 @@
 <?php
 
-use \Tila\Page;
 use \Tila\PageAdmin;
 use \Tila\Model\User;
 use \Tila\Model\Category;
+use \Tila\Model\Product;
 
 /* rotas para categorias */
 
@@ -106,7 +106,7 @@ $app->get("/admin/categories/delete/{idcategory}", function($request, $response,
 });
 
 // rota para alterar os dados no banco de dados
-$app->get("/categories/{idcategory}", function($request, $response, $args) {
+$app->get("/admin/categories/{idcategory}/products", function($request, $response, $args) {
 
 	User::verifyLogin();
 
@@ -114,12 +114,53 @@ $app->get("/categories/{idcategory}", function($request, $response, $args) {
 
 	$category->get((int)$args["idcategory"]);
 
-	$page = new Page();
+	$page = new PageAdmin();
 
-	$page->setTpl("category", [
+	$page->setTpl("categories-products", [
 		'category'=>$category->getValues(),
-		'products'=>[]
+		'productsRelated'=>$category->getProducts(),
+		'productsNotRelated'=>$category->getProducts(false)
 	]);
+
+});
+
+// rota para incluir relação entre categorias e produtos no banco de dados
+$app->get("/admin/categories/{idcategory}/products/{idproduct}/add", function($request, $response, $args) {
+
+	User::verifyLogin();
+
+	$category = new Category();
+
+	$category->get((int)$args["idcategory"]);
+	
+	$product = new Product();
+
+	$product->get((int)$args["idproduct"]);
+
+	$category->addProduct($product);
+	
+	header("Location: /admin/categories/".(int)$args["idcategory"]."/products");
+	exit;
+
+});
+
+// rota para excluir relação entre categorias e produtos do banco de dados
+$app->get("/admin/categories/{idcategory}/products/{idproduct}/remove", function($request, $response, $args) {
+
+	User::verifyLogin();
+
+	$category = new Category();
+
+	$category->get((int)$args["idcategory"]);
+
+	$product = new Product();
+
+	$product->get((int)$args["idproduct"]);
+
+	$category->removeProduct($product);
+	
+	header("Location: /admin/categories/".(int)$args["idcategory"]."/products");
+	exit;
 
 });
 
