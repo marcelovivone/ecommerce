@@ -5,8 +5,6 @@ namespace Tila\Model;
 use \Tila\DB\Sql;
 use \Tila\Model;
 
-// essa classe User é um model. Todo classe model tem getters e setters
-// Classe Model contém os getters e setters, para serem utilizados em todas as classes model
 class Category extends Model
 {
 	
@@ -98,8 +96,6 @@ class Category extends Model
 			array_push($html, '<li><a href="/categories/'.$row['idcategory'].'">'.$row['descategory'].'</a></li>');
 		}
 
-var_dump($html);
-//exit;
 		file_put_contents($_SERVER['DOCUMENT_ROOT'] . DIRECTORY_SEPARATOR . "views" . DIRECTORY_SEPARATOR . "categories-menu.html", implode("", $html));
 
 	}
