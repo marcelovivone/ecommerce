@@ -17,6 +17,24 @@ class Product extends Model
 
 	}
 
+	// pela implementação, as fotos não estão no banco e, portanto, a foto não existe no array de retorno de listAll
+	// é necessário criar uma camada para chamar o getValues e retorno os objetos tratados para as fotos
+	public static function checkList($list)
+	{
+
+		foreach ($list as &$row) {
+			
+			$p = new Product();
+			$p->setData($row);
+			$row = $p->getValues();
+
+		}
+
+		// contém os dados de cada produto já formatados
+		return $list;
+
+	}
+
 	public function save()
 	{
 
