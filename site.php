@@ -1,9 +1,10 @@
 <?php
 
 use \Tila\Page;
-use \Tila\PageAdmin;
+//use \Tila\PageAdmin;
 use \Tila\Model\Category;
 use \Tila\Model\Product;
+use \Tila\Model\Cart;
 
 // rota de Page
 $app->get("/", function() {
@@ -36,5 +37,14 @@ $app->get("/categories/{idcategory}", function($request, $response, $args) {
 	]);
 
 });
+
+$app->get("/cart", function() {
+
+	$cart = Cart::getFromSession();
+
+	$page = new Page();
+
+	$page->setTpl("cart");
+})
 
 ?>

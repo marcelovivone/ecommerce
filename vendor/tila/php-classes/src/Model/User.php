@@ -15,6 +15,64 @@ class User extends Model
 	const SECRET = "1019019018452124";
 	const CIPHER = "aes-128-cbc";
 
+	public static function getFromSession()
+	{
+
+		$user = new User();
+
+		// verifica se a sessão está definida e se o usuário existe dentro da sessão
+		if (isset($_SESSION[User::SESSION]) && (int)$_SESSION[User::SESSION]['iduser'] > 0) {
+
+			$user->setData($_SESSION[User::SESSION]);
+
+		}
+
+		return $user;
+
+	}
+
+	public static function checkLogin($inadmin = true)
+	{
+
+		if (
+			// se a sessão não está definida
+			!isset($_SESSION[User::SESSION])
+			||
+			// se a sessão está vazia
+			!$_SESSION[User::SESSION]
+			||
+			// se o usuário é válido
+			!(int)$_SESSION[User::SESSION]["iduser"] > 0
+		) {
+
+			// usuário não está logado
+			return false;
+			
+		} else {
+
+			// I - se a rota é de administração
+			// II - se o usuario logado tem permissão para acessar a área de administração
+			//  ------- I -------    ----------------------- II -----------------------
+			if ($inadmin === true && (bool)$_SESSION[User::SESSION]['inadmin'] === true) {
+
+				return true;
+
+			// a rota não é de administração
+			} else if ($inadmin === false) {
+
+				return true;
+
+			} else {
+
+				return false;
+
+			}
+
+
+		}
+
+	}
+
 	public static function login($login, $password)
 	{
 
@@ -56,19 +114,7 @@ class User extends Model
 	public static function verifyLogin($inadmin = true)
 	{
 
-		if (
-			// se a sessão não está definida
-			!isset($_SESSION[User::SESSION])
-			||
-			// se a sessão está vazia
-			!$_SESSION[User::SESSION]
-			||
-			// se o usuário é válido
-			!(int)$_SESSION[User::SESSION]["iduser"] > 0
-			||
-			// se o usuário é administrador
-			(bool)$_SESSION[User::SESSION]["inadmin"] !== $inadmin
-		) {
+		if (User::checkLogin($inadmin)) {
 			
 			header("Location: /admin/login");
 			exit;
