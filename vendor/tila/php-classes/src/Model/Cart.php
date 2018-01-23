@@ -11,6 +11,9 @@ class Cart extends Model
 	// sessão precisa ser criada para conter o id do carrinho
 	const SESSION = "Cart";
 
+	// sessão para mensagem de erro (utilizada no cálculo do frete)
+	const SESSION_ERROR = 'CartError';
+
 	public static function getFromSession()
 	{
 
@@ -149,6 +152,9 @@ class Cart extends Model
 			':idproduct'=>$product->getidproduct()
 		]);
 
+		// atualiza os valores da página de frete
+		$this->getCalculateTotal();
+
 	}
 
 	public function removeProduct(Product $product, $all = false)
@@ -176,6 +182,9 @@ class Cart extends Model
 			':idcart'=>$this->getidcart(),
 			'idproduct'=>$product->getidproduct()
 		]);
+
+		// atualiza os valores da página de frete
+		$this->getCalculateTotal();
 
 	}
 
@@ -213,7 +222,170 @@ class Cart extends Model
 
 		// inclui as fotos do produto às linhas do array
 		return Product::checkList($rows);
-exit;
+	}
+
+	public function getProductsTotals()
+	{
+
+		$sql = new Sql();
+
+		$results = $sql->select("
+			SELECT SUM(vlprice) AS vlprice,
+				   SUM(vlwidth) AS vlwidth,
+				   SUM(vlheight) AS vlheight,
+				   SUM(vllength) AS vllength,
+				   SUM(vlweight) AS vlweight,
+				   COUNT(*) AS nrqtd
+			  FROM tb_products p
+			 INNER JOIN tb_cartsproducts c ON p.idproduct = c.idproduct
+			 WHERE c.idcart = :idcart AND
+			 	   dtremoved IS NULL
+ 			", [
+ 				':idcart'=>$this->getidcart()
+ 			]);
+
+		if (count($results) > 0) {
+
+			return $results[0];
+
+		} else {
+
+			return [];
+
+		}
+	}
+
+	public function setFreight($nrzipcode)
+	{
+
+		$nrzipcode = str_replace('-', '', $nrzipcode);
+
+		$totals = $this->getProductsTotals();
+
+		if (isset($totals['nrqtd'])) {
+
+			// corrigindo manualmente os erros retornados pelo webservice para poder executar a requisição
+			// no mundo real, esses erros devem ser tratados apropriadamente
+			$totals['vllength'] = ($totals['vllength'] >= 16) ? $totals['vllength'] : 16;
+			$totals['vlheight'] = ($totals['vlheight'] >= 2) ? $totals['vlheight'] : 11;
+			$totals['vlwidth'] = ($totals['vlwidth'] >= 11) ? $totals['vlwidth'] : 11;
+			$totals['vlwidth'] = ($totals['vlwidth'] <= 105) ? $totals['vlwidth'] : 105;
+
+			$qs = http_build_query([
+				'nCdEmpresa'=>'',
+				'sDsSenha'=>'',
+				'nCdServico'=>'40010',
+				'sCepOrigem'=>'22270000',
+				'sCepDestino'=>$nrzipcode,
+				'nVlPeso'=>$totals['vlweight'],
+				'nCdFormato'=>'1',
+				'nVlComprimento'=>$totals['vllength'],
+				'nVlAltura'=>$totals['vlheight'],
+				'nVlLargura'=>$totals['vlwidth'],
+				'nVlDiametro'=>'0',
+				'sCdMaoPropria'=>'S',
+				'nVlValorDeclarado'=>'0',
+				'sCdAvisoRecebimento'=>'S'
+			]);
+
+			// webservice vai retornar os dados em XML
+			$xml = simplexml_load_file("http://ws.correios.com.br/calculador/CalcPrecoPrazo.asmx/CalcPrecoPrazo?".$qs);
+
+			$result = $xml->Servicos->cServico;
+//echo(json_encode((array($xml))));
+//exit;
+			if ($result->MsgErro == '') {
+
+				Cart::clearMsgError();
+
+			} else {
+
+				Cart::setMsgError($result->MsgErro);
+
+			}
+
+			$this->setnrdays($result->PrazoEntrega);
+			$this->setvlfreight(Cart::formatValueToDecimal($result->Valor));
+			$this->setdeszipcode($nrzipcode);
+
+			$this->save();
+
+			return $result;
+
+		} else {
+
+
+		}
+
+	}
+	
+	public static function formatValueToDecimal($value):float
+	{
+
+		$value = str_replace('.', '', $value);
+		return str_replace(',', '.', $value);
+
+	}
+
+	public static function setMsgError($msg) 
+	{
+
+		$_SESSION[Cart::SESSION_ERROR] = $msg;
+
+	}
+
+	public static function getMsgError() 
+	{
+
+		$msg = isset($_SESSION[Cart::SESSION_ERROR]) ? $_SESSION[Cart::SESSION_ERROR] : "";
+
+		Cart::clearMsgError();
+
+		return $msg;
+
+	}
+
+	public static function clearMsgError() 
+	{
+
+		$_SESSION[Cart::SESSION_ERROR] = NULL;
+
+	}
+
+	public function updateFreight() 
+	{
+
+		// atualiza o valor do frete na página apenas se o zipcode tiver sido informado
+		if ($this->getdeszipcode() != ''){
+
+			$this->setFreight($this->getdeszipcode());
+
+		}
+
+
+	}
+
+	// sobrescrevendo o método do Model para adicionar 2 valores que devem ser mostrados na
+	// página de cálculo de frete e que não estão originalmente dentro do carrinho (subtotal
+	// e total geral)
+	public function getValues()
+	{
+
+		$this->getCalculateTotal();
+
+		return parent::getValues();
+
+	}
+
+	public function getCalculateTotal()
+	{
+
+		$this->updateFreight();
+
+		$totals = $this->getProductsTotals();
+
+		$this->setvlsubtotal($totals['vlprice']);
+		$this->setvltotal($totals['vlprice'] + $this->getvlfreight());
 
 	}
 
