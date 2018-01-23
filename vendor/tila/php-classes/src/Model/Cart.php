@@ -139,6 +139,84 @@ class Cart extends Model
 
 	}
 
+	public function addProduct(Product $product)
+	{
+
+		$sql = new Sql();
+
+		$sql->query("INSERT INTO tb_cartsproducts (idcart, idproduct) VALUES (:idcart, :idproduct)", [
+			':idcart'=>$this->getidcart(),
+			':idproduct'=>$product->getidproduct()
+		]);
+
+	}
+
+	public function removeProduct(Product $product, $all = false)
+	{
+
+		$sql = new Sql();
+
+		// não há exclusão de registro para que os dados possam ser utilizados para análises futuras
+		$query = "UPDATE tb_cartsproducts 
+					 SET dtremoved = NOW() 
+				   WHERE idcart = :idcart AND 
+				   		 idproduct = :idproduct AND 
+				   		 dtremoved IS NULL";
+
+		// $all:
+		// true - remove todos os itens do produto do carrinho (o produto some do carrinho na página)
+		// false - remove um item do produto do carrinho (diminui uma quantidade do mostrador da página)
+		if (!$all) {
+			
+			$query .= ' LIMIT 1';
+
+		}
+		
+		$sql->query($query, [
+			':idcart'=>$this->getidcart(),
+			'idproduct'=>$product->getidproduct()
+		]);
+
+	}
+
+	public function getProducts(){
+
+		$sql = new Sql();
+
+		$rows = $sql->select("
+			SELECT p.idproduct,
+		  		   p.desproduct,
+		  		   p.vlprice,
+		  		   p.vlwidth, 
+		  		   p.vlheight, 
+		  		   p.vllength,
+		  		   p.vlweight,
+		  		   p.desurl,
+		  		   COUNT(*) AS nrqtd,
+		  		   SUM(p.vlprice) AS vltotal
+			  FROM tb_cartsproducts c
+			 INNER JOIN tb_products p ON c.idproduct = p.idproduct
+			 WHERE c.idcart = :idcart AND
+			 	   c.dtremoved IS NULL
+		  GROUP BY p.idproduct,
+		  		   p.desproduct,
+		  		   p.vlprice,
+		  		   p.vlwidth, 
+		  		   p.vlheight, 
+		  		   p.vllength,
+		  		   p.vlweight,
+		  		   p.desurl
+		  ORDER BY p.desproduct
+		  ", [
+		  	':idcart'=>$this->getidcart()
+		  ]);
+
+		// inclui as fotos do produto às linhas do array
+		return Product::checkList($rows);
+exit;
+
+	}
+
 }
 
 ?>

@@ -71,6 +71,24 @@ $app->get("/admin/products/{idproduct}", function($request, $response, $args) {
 
 });
 
+/*
+// rota para alterar os dados no banco de dados
+$app->get("/products/{idproduct}", function($request, $response, $args) {
+
+	User::verifyLogin();
+
+	$product = new Product();
+
+	$product->get((int)$args["idproduct"]);
+
+	$page = new Page();
+
+	$page->setTpl("product", [
+		'product'=>$product->getValues()
+	]);
+
+});
+*/
 // rota para alterar os dados no banco de dados
 $app->post("/admin/products/{idproduct}", function($request, $response, $args) {
 
@@ -83,7 +101,7 @@ $app->post("/admin/products/{idproduct}", function($request, $response, $args) {
 	$product->setData($_POST);
 
 	$product->update();
-var_dump($_FILES);
+
 	// faz o upload do arquivo anexo
 	$product->setPhoto($_FILES["file"]);
 
@@ -105,23 +123,6 @@ $app->get("/admin/products/delete/{idproduct}", function($request, $response, $a
 
 	header("Location: /admin/products");
 	exit;
-
-});
-
-// rota para alterar os dados no banco de dados
-$app->get("/products/{idproduct}", function($request, $response, $args) {
-
-	User::verifyLogin();
-
-	$product = new Product();
-
-	$product->get((int)$args["idproduct"]);
-
-	$page = new Page();
-
-	$page->setTpl("product", [
-		'product'=>$product->getValues()
-	]);
 
 });
 
