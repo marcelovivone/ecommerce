@@ -2,9 +2,11 @@
 
 use \Tila\Page;
 //use \Tila\PageAdmin;
+use \Tila\Model\User;
 use \Tila\Model\Category;
 use \Tila\Model\Product;
 use \Tila\Model\Cart;
+use \Tila\Model\Address;
 
 // rota de Page
 $app->get("/", function() {
@@ -138,5 +140,135 @@ $app->post("/cart/freight", function() {
 	exit;
 
 });
+
+// rota para a finalização da compra
+$app->get("/checkout", function() {
+
+	User::verifyLogin(false);
+
+	$cart = Cart::getFromSession();
+
+	$address = new Address();
+
+	$page = new Page();
+
+	$page->setTpl("checkout", [
+		'cart'=>$cart->getValues(),
+		'address'=>$address->getValues()
+	]);
+
+});
+
+// rota para a página de login
+$app->get("/login", function() {
+
+	$page = new Page();
+
+	$page->setTpl("login", [
+		'error'=>User::getError(),
+		'errorRegister'=>User::getErrorRegister(),
+		'registerValues'=>isset($_SESSION['registerValues']) ? $_SESSION['registerValues'] : [
+			'name'=>'',
+			'email'=>'',
+			'phone'=>''
+		]
+	]);
+
+});
+
+// rota para a validação do login
+$app->post("/login", function() {
+
+	try {
+
+		User::login($_POST['login'], $_POST['password']);
+
+	} catch(Exception $e) {
+//echo 'www ----- ';
+//echo $e->getMessage();
+//echo ' ----- www';
+		User::setError($e->getMessage());
+
+	}
+
+	header("Location: /checkout");
+	exit;
+
+});
+
+// rota para a página de login
+$app->get("/logout", function() {
+
+	User::logout();
+	$page = new Page();
+
+	header("Location: /login");
+	exit;
+
+});
+
+// rota para o cadastro de um novo usuário
+$app->post("/register", function() {
+
+	// guardar os dados digitados pelo usuário em uma sessão
+	// utilizada para o caso de ter algum erro no cadastro e não limpar os campos da página
+	$_SESSION['registerValues'] = $_POST;
+
+	// validação de campos obrigatórios da página
+	if (!isset($_POST['name']) || $_POST['name'] == '') {
+
+		User::setErrorRegister("Preencha o seu nome.");
+		header('Location: /login');
+		exit;
+
+	}
+
+	if (!isset($_POST['email']) || $_POST['email'] == '') {
+
+		User::setErrorRegister("Preencha o seu e-mail.");
+		header('Location: /login');
+		exit;
+
+	}
+
+	if (!isset($_POST['password']) || $_POST['password'] == '') {
+
+		User::setErrorRegister("Preencha a senha.");
+		header('Location: /login');
+		exit;
+
+	}
+
+	// verifica se o usuário já existe
+	if (User::checkLoginExist($_POST['email']) === true) {
+
+		User::setErrorRegister("Esse endereço de e-mail já está sendo utilizado por outro usuário.");
+		header('Location: /login');
+		exit;
+
+	}
+
+	$user = new User();
+
+	$user->setData([
+		'inadmin'=>0,
+		'desperson'=>$_POST['name'],
+		'deslogin'=>$_POST['email'],
+		'desemail'=>$_POST['email'],
+		'despassword'=>$_POST['password'],
+		'nrphone'=>$_POST['phone']
+	]);
+
+	// autentica o usuário
+	// caso isso não seja feito, a rota de checkout irá redirecionar para a rota de login
+	// (o usuário precisa estar logado para acessar a rota de checkout)
+	$user->insert();
+
+	User::login($_POST['email'], $_POST['password']);
+
+	header('Location: /checkout');
+	exit;
+
+})
 
 ?>

@@ -5,6 +5,7 @@ use \Tila\Model\User;
 
 // rota de PageAdmin
 $app->get("/admin", function() {
+
 	// quando for acessar a página de admin, verificar se o usuário está logado
 	// e se tem acesso à administração
 	User::verifyLogin();
@@ -17,7 +18,7 @@ $app->get("/admin", function() {
 
 });
 
-// rota de Login
+// rota de página de Login
 $app->get("/admin/login", function() {
 	// __construct (header)
 	$page = new PageAdmin([
@@ -30,7 +31,7 @@ $app->get("/admin/login", function() {
 
 });
 
-// rota de formulário
+// rota de validação de login
 $app->post("/admin/login", function() {
 
 	User::login($_POST["login"], $_POST["password"]);
