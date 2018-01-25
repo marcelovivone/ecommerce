@@ -269,6 +269,80 @@ $app->post("/register", function() {
 	header('Location: /checkout');
 	exit;
 
-})
+});
+
+// rota de recuperação de senha (forgot)
+$app->get("/forgot", function() {
+
+	// __construct (header)
+	$page = new Page();
+
+	// body
+	$page->setTpl("forgot");
+
+});
+
+// rota de salvar senha de recuperação no banco (forgot)
+$app->post("/forgot", function() {
+	
+	$user = User::getForgot($_POST["email"], false);
+
+	header("location: /forgot/sent");
+	exit;
+
+});
+
+// rota de janela de senha enviada (forgot)
+$app->get("/forgot/sent", function() {
+
+	// __construct (header)
+	$page = new Page();
+
+	// body
+	$page->setTpl("forgot-sent");
+
+});
+
+// rota de janela de reset de senha
+$app->get("/forgot/reset", function() {
+
+	$user = User::validForgotDecrypt($_GET["code"], $_GET["iv"]);
+
+	// __construct (header)
+	$page = new Page();
+
+	// body
+	$page->setTpl("forgot-reset", array(
+		"name"=>$user["desperson"],
+		"code"=>$_GET["code"],
+		"iv"=>$_GET["iv"]
+	));
+
+});
+
+// rota de salvar a senha de reset no banco
+$app->post("/forgot/reset", function() {
+
+	$forgot = User::validForgotDecrypt($_POST["code"], $_POST["iv"]);
+
+	User::setForgotUsed($forgot["idrecovery"]);
+
+	$user = new User();
+
+	$user->get((int)$forgot["iduser"]);
+
+	$password = password_hash($_POST["password"], PASSWORD_DEFAULT, [
+		"cost"=>12
+	]);
+
+	$user->setPassword($password);
+
+	// __construct (header)
+	$page = new Page();
+
+	// body
+	$page->setTpl("forgot-reset-success");
+
+});
 
 ?>

@@ -189,7 +189,13 @@ class User extends Model
 			":iduser"=>$iduser
 		));
 
-		$data['desperson'] = utf8_encode($data['desperson']);
+		if (count($results) > 0) {
+
+			$data = $results[0];
+
+			$data['desperson'] = utf8_encode($data['desperson']);
+
+		}
 
 		$this->setData($results[0]);
 
@@ -231,7 +237,7 @@ class User extends Model
 
 	}
 
-	public static function getForgot($email)
+	public static function getForgot($email, $inadmin = true)
 	{
 
 		$sql = new Sql();
@@ -292,8 +298,17 @@ echo ' --- ';
 echo 'IV64: '.$iv;
 //exit;
 */
+			// se o método foi chamado a partir da área de administração
+			if ($inadmin === true) {
+				
+				$link = "http://www.tilacommerce.com.br/admin/forgot/reset?code=$code&iv=$iv";
 
-			$link = "http://www.tilacommerce.com.br/admin/forgot/reset?code=$code&iv=$iv";
+			// se o método foi chamado a partir da área de loja
+			} else {
+
+				$link = "http://www.tilacommerce.com.br/forgot/reset?code=$code&iv=$iv";
+
+			}
 
 			$mailer = new Mailer($data["desemail"], $data["desperson"], "Redefinir Senha da Tila Store", "forgot", 
 				array(
