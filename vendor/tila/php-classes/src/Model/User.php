@@ -16,6 +16,7 @@ class User extends Model
 	const CIPHER = "aes-128-cbc";
 	const ERROR = "UserError";
 	const ERROR_REGISTER = "UserErrorRegister";
+	const SUCCESS = "UserSuccess";
 
 	public static function getFromSession()
 	{
@@ -79,8 +80,6 @@ class User extends Model
 
 		$sql = new Sql();
 
-//var_dump("SELECT * FROM tb_users u INNER JOIN tb_persons p ON u.idperson = p.idperson WHERE u.deslogin = '$login'");
-//exit;
 		$results = $sql->select("SELECT * FROM tb_users u INNER JOIN tb_persons p ON u.idperson = p.idperson WHERE u.deslogin = :LOGIN", array(
 			":LOGIN"=>$login
 		));
@@ -96,11 +95,6 @@ class User extends Model
 
 		$data = $results[0];
 
-//echo '$password: '.$password;
-//echo ' ----- ';
-//echo '$data["despassword"]: '.$data["despassword"];
-//echo ' ----- ';
-
 		if (password_verify($password, $data["despassword"]))
 		{
 			
@@ -111,19 +105,17 @@ class User extends Model
 			$user->setData($data);
 			
 			$_SESSION[User::SESSION] = $user->getValues();
-//echo '101';
-//exit;
+
 			return $user;
 
 		} else 
 		{
-//echo '222';
-//exit;
+
 			// contrabarra é necessária porque a exceção está no escopo principal (no namespace principal
 			// do PHP) e não dentro do namespace corrente (\Tila\Model)
 			throw new \Exception("Usuário inexistente ou senha inválida.", 1);
 		}
-//exit;
+
 	}
 
 	public static function verifyLogin($inadmin = true)
@@ -164,6 +156,7 @@ class User extends Model
 	{
 
 		$sql = new Sql();
+
 
 		$results = $sql->select("CALL sp_users_save (:desperson, :deslogin, :despassword, :desemail, :nrphone, :inadmin)", 
 			array(
@@ -455,7 +448,12 @@ echo $idrecovery;
 
 		$sql = new Sql();
 
-		$results = $sql->select("SELECT * FROM tb_users WHERE deslogin = :deslogin", [
+		$results = $sql->select("
+			SELECT * 
+			  FROM tb_users u 
+			 INNER JOIN tb_persons p USING(idperson) 
+			 WHERE u.deslogin = :deslogin OR 
+			 	   p.desemail = :deslogin", [
 			':deslogin'=>$login
 		]);
 
@@ -469,6 +467,31 @@ echo $idrecovery;
 		return password_hash($password, PASSWORD_DEFAULT, [
 			'cost'=>12
 		]);
+
+	}
+
+	public static function setSuccess($msg)
+	{
+
+		$_SESSION[User::SUCCESS] = $msg;
+
+	}
+
+	public static function getSuccess()
+	{
+
+		$msg = isset($_SESSION[User::SUCCESS]) && $_SESSION[User::SUCCESS] ? $_SESSION[User::SUCCESS] : "";
+
+		User::clearSuccess();
+
+		return $msg;
+
+	}
+
+	public static function clearSuccess()
+	{
+
+		$_SESSION[User::SUCCESS] = NULL;
 
 	}
 

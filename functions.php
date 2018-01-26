@@ -22,10 +22,7 @@ function getUserName()
 {
 
 	$user = User::getFromSession();
-//var_dump($user);
-//echo ' --- ';
-//echo $user->getdesperson();
-//exit;
+
 	return $user->getdesperson();
 
 }

@@ -320,7 +320,7 @@ $app->get("/forgot/reset", function() {
 
 });
 
-// rota de salvar a senha de reset no banco
+// rota para salvar a senha de reset no banco
 $app->post("/forgot/reset", function() {
 
 	$forgot = User::validForgotDecrypt($_POST["code"], $_POST["iv"]);
@@ -342,6 +342,87 @@ $app->post("/forgot/reset", function() {
 
 	// body
 	$page->setTpl("forgot-reset-success");
+
+});
+
+// rota para página de edição dos dados do usuário
+$app->get("/profile", function() {
+
+	User::verifyLogin(false);
+
+	$user = User::getFromSession();
+
+	$page = new Page();
+
+	$page->setTpl("profile", [
+		'user'=>$user->getValues(),
+		'profileMsg'=>User::getSuccess(),
+		'profileError'=>User::getError()
+	]);
+
+});
+
+// rota para salvar dados alterados no banco
+$app->post("/profile", function() {
+
+	User::verifyLogin(false);
+
+	// validação de campos obrigatórios da página
+	if (!isset($_POST['desperson']) || $_POST['desperson'] === '') {
+
+		User::setError("Preencha o seu nome.");
+		header('Location: /profile');
+		exit;
+
+	}
+
+	if (!isset($_POST['desemail']) || $_POST['desemail'] === '') {
+
+		User::setErrorRegister("Preencha o seu e-mail.");
+		header('Location: /profile');
+		exit;
+
+	}
+
+	$user = User::getFromSession();
+
+	// verifica se o usuário já existe
+	if ($_POST['desemail'] !== $user->getdesemail()) {
+
+		if (User::checkLoginExist($_POST['desemail']) === true) {
+
+			// retorna os valores informados pelo usuário para a sessão
+			// no get do profile, esses valores serão lidos e reexibidos nos campos da página
+			$_SESSION[User::SESSION] = $_POST;
+
+			User::setError("Esse endereço de e-mail já está sendo utilizado por outro usuário.");
+			header('Location: /profile');
+			exit;
+
+		}
+
+	}
+
+	// evita command injection para alterar o usuário para administrador
+	// sobrescrevendo uma possível alteração pelo inadmin e pela senha
+	// originais salvas no banco de dados
+	$_POST['iduser'] = $user->getiduser();
+	$_POST['inadmin'] = $user->getinadmin();
+	$_POST['despassword'] = $user->gedespassword();
+
+	// o login é o mesmo que o e-mail para os usuários do site
+	$_POST['deslogin'] = $_POST['desemail'];
+
+	$user->setData($_POST);
+
+	$user->update();
+
+	$_SESSION[User::SESSION] = $user->getValues();
+
+	User::setSuccess("Dados alterados com sucesso!");
+
+	header("location: /profile");
+	exit;
 
 });
 
