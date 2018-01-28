@@ -36,11 +36,11 @@ class Address extends Model
 
 		if (isset($data['logradouro']) && $data['logradouro']){
 
-			$this->setdesaddress(utf8_encode($data['logradouro']));
-			$this->setdescomplement(utf8_encode($data['complemento']));
-			$this->setdesdistrict(utf8_encode($data['bairro']));
-			$this->setdescity(utf8_encode($data['localidade']));
-			$this->setdesstate(utf8_encode($data['uf']));
+			$this->setdesaddress($data['logradouro']);
+			$this->setdescomplement($data['complemento']);
+			$this->setdesdistrict($data['bairro']);
+			$this->setdescity($data['localidade']);
+			$this->setdesstate($data['uf']);
 			$this->setdescountry('Brasil');
 			$this->setnrzipcode($nrcep);
 
@@ -56,6 +56,7 @@ class Address extends Model
 		$results = $sql->select("CALL sp_addresses_save(:idaddress, :idperson, :desaddress, :descomplement, :descity, :desstate, :descountry, :deszipcode, :desdistrict)", [
 			':idaddress'=>$this->getidaddress(), 
 			':idperson'=>$this->getidperson(),
+//			':desnumber'=>utf8_decode($this->getdesnumber()), 
 			':desaddress'=>utf8_decode($this->getdesaddress()), 
 			':descomplement'=>utf8_decode($this->getdescomplement()),
 			':descity'=>utf8_decode($this->getdescity()),
