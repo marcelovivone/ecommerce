@@ -266,7 +266,7 @@ $app->post("/checkout", function() {
 		'idaddress'=>$address->getValues()['idaddress'],
 		'iduser'=>$user->getiduser(),
 		'idstatus'=>OrderStatus::EM_ABERTO,
-		'vltotal'=>$totals['vlprice'] + $cart->getvlfreight()
+		'vltotal'=>$cart->getvltotal()
 	]);
 
 	$order->save();
@@ -574,6 +574,7 @@ $app->get("/boleto/{idorder}", function($request, $response, $args) {
 	$taxa_boleto = 5.00;
 	$data_venc = date("d/m/Y", time() + ($dias_de_prazo_para_pagamento * 86400));  // Prazo de X dias OU informe data: "13/04/2006"; 
 	$valor_cobrado = formatBR($order->getvltotal()); // Valor - REGRA: Sem pontos na milhar e tanto faz com "." ou "," ou com 1 ou 2 ou sem casa decimal
+	$valor_cobrado = str_replace(".", "",$valor_cobrado);
 	$valor_cobrado = str_replace(",", ".",$valor_cobrado);
 	$valor_boleto=number_format($valor_cobrado+$taxa_boleto, 2, ',', '');
 
@@ -628,20 +629,45 @@ $app->get("/boleto/{idorder}", function($request, $response, $args) {
 	$path = $_SERVER['DOCUMENT_ROOT'] . DIRECTORY_SEPARATOR . "res" . DIRECTORY_SEPARATOR . "boletophp". DIRECTORY_SEPARATOR . "include" . DIRECTORY_SEPARATOR;
 	require_once($path . "funcoes_itau.php"); 
 	require_once($path . "layout_itau.php");
+});
 
+$app->get("/profile/orders", function() {
 
-/*	User::verifyLogin(false);
+	User::verifyLogin(false);
+
+	$user = User::getFromSession();
+
+	$page = new Page();
+
+	$page->setTpl("profile-orders", [
+		'orders'=>$user->getOrders()
+	]);
+
+});
+
+$app->get("/profile/orders/{idorder}", function($request, $response, $args) {
+
+	User::verifyLogin(false);
 
 	$order = new Order();
 
 	$order->get((int)$args["idorder"]);
 
+	$cart = new Cart();
+
+	$cart->get((int)$order->getidcart());
+
+	$cart->getCalculateTotal();
+
 	$page = new Page();
 
-	$page->setTpl("payment", [
-		'order'=>$order->getValues()
+	$page->setTpl("profile-orders-detail", [
+		'cart'=>$cart->getValues(),
+		'order'=>$order->getValues(),
+		'products'=>$cart->getProducts()
 	]);
-*/
+
 });
+
 
 ?>

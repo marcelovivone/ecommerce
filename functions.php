@@ -1,6 +1,7 @@
 <?php
 
 use \Tila\Model\User;
+use \Tila\Model\Cart;
 
 function formatBR($vlunformat)
 {
@@ -24,6 +25,26 @@ function getUserName()
 	$user = User::getFromSession();
 
 	return $user->getdesperson();
+
+}
+
+function getCartNrQtd() {
+
+	$cart = Cart::getFromSession();
+
+	$totals = $cart->getProductsTotals();
+
+	return $totals['nrqtd'];
+
+}
+
+function getCartVlSubTotal() {
+
+	$cart = Cart::getFromSession();
+
+	$totals = $cart->getProductsTotals();
+
+	return formatBR($totals['vlprice']);
 
 }
 

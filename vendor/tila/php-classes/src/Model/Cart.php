@@ -97,9 +97,9 @@ class Cart extends Model
 			':idcart'=>$idcart
 		]);
 
-		if (count($results)) {
+		if (count($results) > 0) {
 
-			$this-setData($results[0]);
+			$this->setData($results[0]);
 
 		}
 
