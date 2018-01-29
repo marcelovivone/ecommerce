@@ -516,6 +516,60 @@ echo $idrecovery;
 
 	}
 
+	public static function getPage($page = 1, $itemPerPage = 10)
+	{
+
+		$start = ($page - 1) * $itemPerPage;
+
+		$sql = new Sql();
+
+		$results = $sql->select("
+			SELECT SQL_CALC_FOUND_ROWS *
+			  FROM tb_users u
+			 INNER JOIN tb_persons p USING(idperson) 
+			 ORDER BY p.desperson
+			 LIMIT $start, $itemPerPage;
+		");
+
+		$resultTotal = $sql->select("SELECT FOUND_ROWS() AS nrtotal;");
+
+		return [
+			'data'=>$results,
+			'total'=>(int)$resultTotal[0]['nrtotal'],
+			'pages'=>ceil($resultTotal[0]['nrtotal'] / $itemPerPage)
+		];
+
+	}
+
+	public static function getPageSearch($search, $page = 1, $itemPerPage = 10)
+	{
+
+		$start = ($page - 1) * $itemPerPage;
+
+		$sql = new Sql();
+
+		$results = $sql->select("
+			SELECT SQL_CALC_FOUND_ROWS *
+			  FROM tb_users u
+			 INNER JOIN tb_persons p USING(idperson) 
+			 WHERE p.desperson LIKE :searchLike OR p.desemail = :search OR u.deslogin LIKE :searchLike
+			 ORDER BY p.desperson
+			 LIMIT $start, $itemPerPage;
+		", [
+			':search'=>$search,
+			':searchLike'=>'%'.$search.'%'
+		]);
+
+		$resultTotal = $sql->select("SELECT FOUND_ROWS() AS nrtotal;");
+
+		return [
+			'data'=>$results,
+			'total'=>(int)$resultTotal[0]['nrtotal'],
+			'pages'=>ceil($resultTotal[0]['nrtotal'] / $itemPerPage)
+		];
+
+	}
+
 }
 
 ?>
