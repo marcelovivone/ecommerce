@@ -12,14 +12,43 @@ $app->get("/admin/categories", function() {
 
 	User::verifyLogin();
 
-	$categories = Category::listAll();
+	$search = isset($_GET['search']) ? $_GET['search'] : "";
+
+	$page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
+
+	if($search == '') {
+
+		$pagination = Category::getPage($page);
+
+	} else {
+
+		$pagination = Category::getPageSearch($search, $page);
+
+	}
+
+	$pages = [];
+
+	for ($pageNumber = 1; $pageNumber <= $pagination['pages']; $pageNumber++)
+	{
+
+		array_push($pages, [
+			'href'=>'/admin/categories?'.http_build_query([
+				'page'=>$pageNumber,
+				'search'=>$search
+			]),
+			'text'=>$pageNumber
+		]);
+
+	}
 
 	// __construct (header)
 	$page = new PageAdmin();
 
 	// body
 	$page->setTpl("categories", array(
-		"categories"=>$categories
+		"categories"=>$pagination['data'],
+		"search"=>$search,
+		"pages"=>$pages
 	));
 
 });
