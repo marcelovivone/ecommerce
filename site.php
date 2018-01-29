@@ -178,6 +178,7 @@ $app->get("/checkout", function() {
 
 	// define os dados no carrinho, mesmo que com conteúdos vazios
 	if (!$address->getdesaddress()) $address->setdesaddress('');
+	if (!$address->getdesnumber()) $address->setdesnumber('');
 	if (!$address->getdescomplement()) $address->setdescomplement('');
 	if (!$address->getdesdistrict()) $address->setdesdistrict('');
 	if (!$address->getdescity()) $address->setdescity('');

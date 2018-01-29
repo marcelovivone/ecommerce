@@ -1,0 +1,51 @@
+-> Código
+
+Via FTP e utilizando o GITHUB
+Exemplo de host utilizado: hostgator.com.br
+
+No GITHUB
+- settings
+- SSH and GPG Keys
+- Seguir os passos no Putty descritos na sessão
+- Volta do Putty
+- Escolher gerar nova chave
+- Informar o título da chave
+- Colar o conteúdo copiado no Putty no campo key da página
+- Adicionar a chave
+
+No Putty (baixar e instalar):
+
+- cd public_html
+- git init (para transformar o diretório public_html em um repositório)
+
+Para incluir a chave gerada no GITHUB:
+- ssh-keygen -t rsa -b 4096 -C "email utilizado no github"
+- cd ~/.ssh (para verificar se o ssh foi gerado) 
+- cat id_rsa.pub (copiar toda a chave que o arquivo contém)
+- Voltar para o GITHUB
+
+- Volta do GITHUB
+- git remote add origin https://github.com/marcelovivone/ecommerce.git (para criar o clone do diretório do github)
+- git config --global user.email "email utilizado no github"
+- git config --global user.name "nome utilizado"
+- git add --all
+- git commit -m "Init"
+- git pull origin master
+
+- Depois de criar o banco de dados, fazer a atualização do repositório do GITHUB para as alterações de conexão ao banco realizadas no arquivo sql.php
+- abrir o git hash local
+- git add --all
+- git commit -m "Init"
+- git push origin master
+
+- Subir para o host as alterações acima
+- Volta para o hush do servidor de host
+- git pull origin master
+
+-> Banco de Dados
+
+Fazer via Mysql Workbench
+- Criar o novo banco de dados com os dados do host
+- Conectar no banco de desenvolvimento e fazer o dump
+- Mudar os dados do servidor no arquivo de dump gerado para o novo host
+- No banco de dados do host fazer a leitura do arquivo de dump
