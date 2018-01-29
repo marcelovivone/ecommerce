@@ -86,8 +86,6 @@ class User extends Model
 
 		if (count($results) === 0)
 		{
-			echo '000';
-			exit;
 			// contrabarra é necessária porque a exceção está no escopo principal (no namespace principal
 			// do PHP) e não dentro do namespace corrente (\Tila\Model)
 			throw new \Exception("Usuário inexistente ou senha inválida.", 1);

@@ -5,7 +5,73 @@ use \Tila\Model\User;
 
 /* rotas para usuários */
 
-// rota para tela de lista
+// rota para página de alteração de senha
+$app->get("/admin/users/{iduser}/password", function($request, $response, $args) {
+
+	User::verifyLogin();
+
+	$user = new User();
+
+	$user->get((int)$args["iduser"]);
+
+	// __construct (header)
+	$page = new PageAdmin();
+
+	$page->setTpl("users-password", array(
+		'user'=>$user->getValues(),
+		'msgError'=>User::getError(),
+		'msgSuccess'=>User::getSuccess()
+	));
+
+});
+
+// rota para salvar a nova senha no banco de dados
+$app->post("/admin/users/{iduser}/password", function($request, $response, $args) {
+
+	User::verifyLogin();
+
+	// valida o preenchimento dos campos
+	if (!isset($_POST['despassword']) || $_POST['despassword'] === '') {
+
+		User::setError('Preencha a nova senha.');
+
+		header('Location: /admin/users/' . $args["iduser"] . '/password');
+		exit;
+
+	}
+
+	if (!isset($_POST['despassword-confirm']) || $_POST['despassword-confirm'] === '') {
+
+		User::setError('Preencha a senha de confirmação.');
+
+		header('Location: /admin/users/' . $args["iduser"] . '/password');
+		exit;
+
+	}
+
+	if ($_POST['despassword'] !== $_POST['despassword-confirm']) {
+
+		User::setError('As senhas nova e de confirmação devem ser iguais.');
+
+		header('Location: /admin/users/' . $args["iduser"] . '/password');
+		exit;
+
+	}
+
+	$user = new User();
+
+	$user->get((int)$args["iduser"]);
+
+	$user->setPassword(User::getPasswordHash($_POST['despassword']));
+
+	User::setSuccess('Senha alterada com sucesso.');
+
+	header('Location: /admin/users/' . $args["iduser"] . '/password');
+	exit;
+
+});
+
+// rota para página de lista
 $app->get("/admin/users", function() {
 
 	User::verifyLogin();
