@@ -272,11 +272,22 @@ $app->post("/checkout", function() {
 
 	$order->save();
 
-	// modificação para integração simples com pagseguro
-//	header('Location: /order/'.$order->getidorder());
-//	exit;
+	switch ((int)$_POST['payment-method']) {
+		
+		case 1:
+			header('Location: /order/'.$order->getidorder().'/pagseguro');
+			break;
+		
+		case 2:
+			header('Location: /order/'.$order->getidorder().'/paypal');
+			break;
 
-	header('Location: /order/'.$order->getidorder().'/pagseguro');
+		case 3:
+			header('Location: /order/'.$order->getidorder());
+			break;
+
+	}
+	
 	exit;
 
 });
@@ -309,6 +320,29 @@ $app->get("/order/{idorder}/pagseguro", function($request, $response, $args) {
 
 });
 
+// rota para página de paypal
+$app->get("/order/{idorder}/paypal", function($request, $response, $args) {
+
+	User::verifyLogin();
+
+	$page = new Page([
+		'header'=>false,
+		'footer'=>false
+	]);
+
+	$order = new Order();
+
+	$order->get((int)$args["idorder"]);
+
+	$cart = $order->getCart();
+
+	$page->setTpl("payment-paypal", [
+		'order'=>$order->getValues(),
+		'cart'=>$cart->getValues(),
+		'products'=>$cart->getProducts()
+	]);
+
+});
 
 // rota para a página de login
 $app->get("/login", function() {
